@@ -1,0 +1,107 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+	<div class="main_con clearfix">
+		<div class="left_menu_con clearfix">
+			<h3>用户中心</h3>
+			<ul>
+				<li><a href="{% url 'info' %}">· 个人信息</a></li>
+				<li><a href="/user/center/" class="active">· 全部订单</a></li>
+				<li><a href="{% url 'site' %}">· 收货地址</a></li>
+			</ul>
+		</div>
+		<div class="right_content clearfix">
+				<h3 class="common_title2">全部订单</h3>
+				<!--属性object_list：返回当前页对象的列表。-->
+			{% for order in page.object_list%}
+				<ul class="order_list_th w978 clearfix">
+					<li class="col01">{{order.odate}}</li>
+					<li class="col02">订单号：{{order.oid}}</li>
+					<li class="col02 stress">{{order.oIsPay}}</li>
+				</ul>
+				<table class="order_list_table w980">
+					<tbody>
+						<tr>
+							<form action="/order/">
+
+							<td width="60%">
+								{% for ord_g in order.orderdetailinfo_set.all %}
+								<ul class="order_goods_list clearfix">
+									<input type="hidden" name="o_gid" value="{{ ord_g.id }}">
+									<li class="col01"><img src=/static/images/{{ord_g.goods.gpic}}></li>
+									<li class="col02">{{ord_g.goods.gtitle}}<em>{{ord_g.goods.gprice}}元/{{ord_g.goods.guint}}</em></li>
+									<li class="col03">{{ord_g.count}}</li>
+									<li class="col04"></li>
+								</ul>
+								{% endfor %}
+							</td>
+							<td width="10%" class="col07">{{order.ototal}}</td>
+							{% if order.oIsPay %}
+							<td width="30%">已支付</td>
+							{% else%}
+							<td width="15%">未支付</td>
+							<td width="15%"><a href="javascript:;" class="oper_btn"><input type="submit" value="去结算"></a></td>
+							{%endif%}
+
+						</form>
+
+						</tr>
+					</tbody>
+				</table>
+			{% endfor %}
+			<div class="pagenation">
+				{% if page.has_previous %}
+					<a href="?page={{ page.previous_page_number }}" aria-label="Previous">
+						<span aria-hidden="true">&laquo;</span>
+					</a>
+				{% else %}
+					<a><span aria-hidden="true">&laquo;</span></a>
+				{% endif %}
+				{% for i in page_range %}
+					{% if i == page.number %}
+					<a class="active"><span>{{ i }}</span></a>
+					{% else %}
+						{% if i == '...' %}
+							<a><span>...</span></a>
+						{% else %}
+							<a href="?page={{ i }}">{{ i }}</a>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+				{% if page.has_next %}
+					<a href="?page={{ page.next_page_number }}" aria-label="Next">
+						<span aria-hidden="true">&raquo;</span>
+					</a>
+				{% else %}
+					<a><span aria-hidden="true">&raquo;</span></a>
+				{% endif %}
+			</div>
+
+		</div>
+	</div>
+<script>
+	function total() {
+		let total_all = 0, total_count = 0, total_checked = 0;
+		$('.order_goods_list').each(function () {
+			let price = parseFloat($(this).children('.col05').html()); //价格
+			let count = parseInt($(this).find('.num_show').val());//数量
+			let small_total = price * count; //小计
+			console.log(price,count,small_total)
+			if ($(this).children('.col01').children('input').prop('checked')) {
+				//如果选中
+				total_all += small_total;
+				total_checked++;
+			}
+			total_count++;
+			$(this).children('.col07').html(small_total.toFixed(2) + '元');//每一个购物车的小计
+		})
+		$('.settlements .col03 em').html(total_all.toFixed(2));//总价
+		$('.settlements .col03 b').html(total_checked);//选中的购物车数量
+		$('.total_count em').html(total_count);//一共多少商品
+	}
+	$(function(){
+		total();
+
+	})
+</script>
+{% endblock %}
